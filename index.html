@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="stuff, to, help, search, engines, not" name="keywords">
+<meta content="What this page is about." name="description">
+<meta content="Mirror Webcam" name="title">
+<title>Mirror Webcam</title>
+  
+<style>
+body
+{
+   margin:0;
+   padding: 0;
+   border: 0;
+}
+#wc1, #wc2, #wc3, #wc4
+{    
+	float: left;
+    width: 50%	;
+    /*height: 800px;*/
+    background-color: #666;
+    margin:0;
+    padding: 0;
+    border: 0;
+	filter: invert(100%)'
+}
+#wc2
+{
+    transform: rotateY(180deg);
+    -webkit-transform:rotateY(180deg); /* Safari and Chrome */
+    -moz-transform:rotateY(180deg); /* Firefox */
+}
+#wc3
+{
+    transform: rotateX(180deg);
+    -webkit-transform:rotateX(180deg); /* Safari and Chrome */
+    -moz-transform:rotateX(180deg); /* Firefox */
+}
+#wc4
+{
+    transform: rotate(180deg);
+    -webkit-transform:rotate(180deg); /* Safari and Chrome */
+    -moz-transform:rotate(180deg); /* Firefox */
+}
+</style>
+</head>
+  
+<body>
+<input type="range" id="hue-range" max = "360" oninput="hueUpdate(this.value)">
+
+<div>
+	<video class="wc" autoplay id = "wc1"></video>
+	<video class="wc" autoplay id = "wc2"></video>
+</div>
+<div>
+	<video class="wc" autoplay id = "wc3"></video>
+	<video class="wc" autoplay id = "wc4"></video>
+</div>
+<script>
+function updateVideoHue (video, index){
+		video.style.filter = hue-rotate(0*(Math.PI/180));
+}
+function hueUpdate(val){
+	var videos = document.getElementsByClassName("wc");
+	//console.log("video[0]: ", videos[0]);
+	//console.log("typeof updateVideoHue : ", typeof updateVideoHue);
+	for(i = 0; i < videos.length; i++ ) {
+		//videos[i].style.filter = 'hue-rotate(' + val + 'deg)';
+		videos[i].style.filter = 'invert(100%)';
+	}
+	//videos.forEach( updateVideoHue );
+}
+
+navigator.getMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+
+navigator.getMedia(
+// constraints
+{
+    video: true
+},
+// successCallback
+function (localMediaStream) {
+    var video = document.querySelector("#wc1");
+    video.src = window.URL.createObjectURL(localMediaStream);
+    video = document.querySelector("#wc2");
+    video.src = window.URL.createObjectURL(localMediaStream);
+	video = document.querySelector("#wc3");
+    video.src = window.URL.createObjectURL(localMediaStream);
+	video = document.querySelector("#wc4");
+    video.src = window.URL.createObjectURL(localMediaStream);
+},
+// errorCallback
+function (err) {
+    console.log("The following error occured: " + err);
+});
+</script>
+</body>
+</html>
