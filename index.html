@@ -23,7 +23,6 @@ body
     margin:0;
     padding: 0;
     border: 0;
-	filter: invert(100%)'
 }
 #wc2
 {
@@ -47,8 +46,23 @@ body
 </head>
   
 <body>
-<input type="range" id="hue-range" max = "360" oninput="hueUpdate(this.value)">
-
+<div id="menu">
+<form oninput="filterHue = hueRange.value;
+			   hueOutput.value = hueRange.value;
+               updateFilter()">
+	<label for="hueRange">hue rotate:</label>
+	<input type="range" id="hueRange" name="hueRange" max="360">
+	<output for="hueRange" name="hueOutput">0</output>
+</form>
+<form oninput="filterBrightness = brightnessRange.value;
+			   BrightnessOutput.value = brightnessRange.value;
+               updateFilter()">
+	<label for="brightnessRange">brightness:</label>
+	<input type="range" id="brightnessRange" name="brightnessRange" max="100">
+	<output for="brightnessRange" name="BrightnessOutput">80</output>
+</form>
+<button type="button" id="invert-button" onclick="filterInvert = 100 - filterInvert; updateFilter()">invert</button>
+</div>
 <div>
 	<video class="wc" autoplay id = "wc1"></video>
 	<video class="wc" autoplay id = "wc2"></video>
@@ -58,42 +72,46 @@ body
 	<video class="wc" autoplay id = "wc4"></video>
 </div>
 <script>
-function updateVideoHue (video, index){
-		video.style.filter = hue-rotate(0*(Math.PI/180));
-}
-function hueUpdate(val){
+
+var filterInvert = 100;
+var filterHue = 0;
+document.getElementById("hueRange").value = filterHue;
+var filterBrightness = 80;
+document.getElementById("brightnessRange").value = filterBrightness;
+function updateFilter(){
 	var videos = document.getElementsByClassName("wc");
-	//console.log("video[0]: ", videos[0]);
-	//console.log("typeof updateVideoHue : ", typeof updateVideoHue);
 	for(i = 0; i < videos.length; i++ ) {
-		//videos[i].style.filter = 'hue-rotate(' + val + 'deg)';
-		videos[i].style.filter = 'invert(100%)';
+		videos[i].style.filter = 'invert(' + filterInvert + '%) ' +  
+		                         'hue-rotate(' + filterHue + 'deg) ' + 
+								 'brightness(' + filterBrightness + '%) ';
 	}
-	//videos.forEach( updateVideoHue );
 }
+updateFilter();
 
+
+var stream;
 navigator.getMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-
 navigator.getMedia(
 // constraints
 {
-    video: true
+    video:{
+		width: {exact: 1920},
+		height: {exact: 1080} }
 },
 // successCallback
 function (localMediaStream) {
-    var video = document.querySelector("#wc1");
-    video.src = window.URL.createObjectURL(localMediaStream);
-    video = document.querySelector("#wc2");
-    video.src = window.URL.createObjectURL(localMediaStream);
-	video = document.querySelector("#wc3");
-    video.src = window.URL.createObjectURL(localMediaStream);
-	video = document.querySelector("#wc4");
-    video.src = window.URL.createObjectURL(localMediaStream);
+	stream = localMediaStream;
+	var videos = document.getElementsByClassName("wc");
+	for(i = 0; i < videos.length; i++ ) {	
+		videos[i].src = window.URL.createObjectURL(localMediaStream);
+	}
+
 },
 // errorCallback
 function (err) {
     console.log("The following error occured: " + err);
 });
+
 </script>
 </body>
 </html>
