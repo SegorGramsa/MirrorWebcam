@@ -5,112 +5,156 @@
 <meta content="stuff, to, help, search, engines, not" name="keywords">
 <meta content="What this page is about." name="description">
 <meta content="Mirror Webcam" name="title">
+<script src="https://rawgit.com/dataarts/dat.gui/master/build/dat.gui.min.js"></script>
 <title>Mirror Webcam</title>
   
 <style>
 body
 {
    margin:0;
-   padding: 0;
-   border: 0;
 }
-#wc1, #wc2, #wc3, #wc4
+td{
+	padding: 0;
+}
+#wrapper{
+	position:fixed;
+	left:50%;
+	top:50%;
+	width: 100%;
+	z-index: -1;
+} 
+#videoBox{	
+	position:relative; 
+	left:-50%;
+	transform: translateY(-50%);
+	border-collapse: collapse;
+    width: 100%;
+	border: 0px solid black;
+}
+.wc
 {    
 	float: left;
-    width: 50%	;
-    /*height: 800px;*/
-    background-color: #666;
-    margin:0;
-    padding: 0;
-    border: 0;
+    width: 100%;
+	border: 0px solid red;
 }
 #wc2
 {
     transform: rotateY(180deg);
-    -webkit-transform:rotateY(180deg); /* Safari and Chrome */
-    -moz-transform:rotateY(180deg); /* Firefox */
 }
 #wc3
 {
     transform: rotateX(180deg);
-    -webkit-transform:rotateX(180deg); /* Safari and Chrome */
-    -moz-transform:rotateX(180deg); /* Firefox */
 }
 #wc4
 {
     transform: rotate(180deg);
-    -webkit-transform:rotate(180deg); /* Safari and Chrome */
-    -moz-transform:rotate(180deg); /* Firefox */
 }
 </style>
 </head>
   
 <body>
-<div id="menu">
-<form oninput="filterHue = hueRange.value;
-			   hueOutput.value = hueRange.value;
-               updateFilter()">
-	<label for="hueRange">hue rotate:</label>
-	<input type="range" id="hueRange" name="hueRange" max="360">
-	<output for="hueRange" name="hueOutput">0</output>
-</form>
-<form oninput="filterBrightness = brightnessRange.value;
-			   BrightnessOutput.value = brightnessRange.value;
-               updateFilter()">
-	<label for="brightnessRange">brightness:</label>
-	<input type="range" id="brightnessRange" name="brightnessRange" max="100">
-	<output for="brightnessRange" name="BrightnessOutput">80</output>
-</form>
-<button type="button" id="invert-button" onclick="filterInvert = 100 - filterInvert; updateFilter()">invert</button>
-</div>
-<div>
-	<video class="wc" autoplay id = "wc1"></video>
-	<video class="wc" autoplay id = "wc2"></video>
-</div>
-<div>
-	<video class="wc" autoplay id = "wc3"></video>
-	<video class="wc" autoplay id = "wc4"></video>
+<div id="wrapper">
+	<table id="videoBox">
+	  <tr>
+		<td><video class="wc" autoplay id = "wc1"></video></td>
+		<td><video class="wc" autoplay id = "wc2"></video></td>
+	  </tr>
+	  <tr>
+		<td><video class="wc" autoplay id = "wc3"></video></td>
+		<td><video class="wc" autoplay id = "wc4"></video></td>
+	  </tr>
+	</table>
 </div>
 <script>
 
-var filterInvert = 100;
-var filterHue = 0;
-document.getElementById("hueRange").value = filterHue;
-var filterBrightness = 80;
-document.getElementById("brightnessRange").value = filterBrightness;
-function updateFilter(){
+var filters = new function(){
+	this.invert = true;
+	this.hue = 0;
+	this.brightness = 80;
+}
+
+function updateFilters(){
 	var videos = document.getElementsByClassName("wc");
 	for(i = 0; i < videos.length; i++ ) {
-		videos[i].style.filter = 'invert(' + filterInvert + '%) ' +  
-		                         'hue-rotate(' + filterHue + 'deg) ' + 
-								 'brightness(' + filterBrightness + '%) ';
+		videos[i].style.filter = 'invert(' + (filters.invert?100:0) + '%) ' +  
+		                         'hue-rotate(' + filters.hue + 'deg) ' + 
+								 'brightness(' + filters.brightness + '%) ';
 	}
 }
-updateFilter();
+updateFilters();
 
+var bgcolor = new function() { this.bgcolor = "#ffffff"}
+function updateBG(){document.body.style.backgroundColor = bgcolor.bgcolor;};
+updateBG();
 
-var stream;
-navigator.getMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
-navigator.getMedia(
-// constraints
-{
-    video:{
-		width: {exact: 1920},
-		height: {exact: 1080} }
-},
-// successCallback
-function (localMediaStream) {
-	stream = localMediaStream;
-	var videos = document.getElementsByClassName("wc");
-	for(i = 0; i < videos.length; i++ ) {	
-		videos[i].src = window.URL.createObjectURL(localMediaStream);
-	}
+var resolution = new function(){
+	this.ratio = 9.0/16;
+	this.hRes = 1080;
+	this.autoRes = updateResolutionAuto;
+}
 
-},
-// errorCallback
-function (err) {
-    console.log("The following error occured: " + err);
-});
+function initCamera(vConstrains){
+	navigator.getMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
+	navigator.getMedia(
+		// constraints
+		{video: vConstrains},
+		// successCallback
+		function (localMediaStream) {
+			localMediaStream;
+			var videos = document.getElementsByClassName("wc");
+			for(i = 0; i < videos.length; i++ ) {	
+				videos[i].src = window.URL.createObjectURL(localMediaStream);
+			}
+		},
+		// errorCallback
+		function (err) {
+			console.log("The following error occured: " + err);
+		}
+	);
+	setTimeout(function(){ 
+		var video = document.getElementById("wc1");
+		console.log("actual res " + video.videoHeight + "x" +  video.videoWidth); 
+	}, 500);
+}
+
+function updateResolution(){
+	initCamera({
+				width: {exact: resolution.hRes/resolution.ratio },
+				height: {exact: resolution.hRes}} );
+}
+
+function updateResolutionAuto(){
+	initCamera( true );
+}
+updateResolution();
+
+var scale = new function() { this.scale = 100}
+function updateScale(){
+	document.getElementById("wrapper").style.width = scale.scale + "%";
+}
+updateScale();
+
+window.onload = function() {
+	var gui = new dat.GUI();
+	gui.domElement.id = 'gui';
+	gui.add(filters, 'invert').onChange(updateFilters);
+	gui.add(filters, 'hue', 0, 360).onChange(updateFilters);
+	gui.add(filters, 'brightness', 0, 100).onChange(updateFilters);
+	gui.addColor(bgcolor, 'bgcolor').onChange(updateBG);
+	gui.add(resolution, 'ratio', {"16:9" : 9.0/16, "4:3" : 3.0/4}).onChange(updateResolution);
+	gui.add(resolution, 'hRes', [1080, 720, 480]).onChange(updateResolution);
+	gui.add(resolution, 'autoRes').onChange(updateResolutionAuto);
+	gui.add(scale, 'scale').min(50).max(150).step(1).onChange(updateScale);
+}
+
+document.getElementById("videoBox").onclick = function(){
+    var guiEl = document.getElementById('gui');
+    if (guiEl.style.display === 'none') {
+        guiEl.style.display = 'block';
+    } else {
+        guiEl.style.display = 'none';
+    }
+}
 
 </script>
 </body>
